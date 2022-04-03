@@ -39,9 +39,10 @@ jobs:
         image: fjzhangzzz/alpine-gcc:main
         options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release
         run: |
+          ls -al /work
           mkdir -p /work/build
           cd /work/build
-          cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../hello-world
+          cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
           make
         
     - name: Login to Docker Hub
