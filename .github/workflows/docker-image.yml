@@ -39,10 +39,10 @@ jobs:
         image: fjzhangzzz/alpine-gcc:main
         options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/amd64
         run: |
-          DISTRDIR=/work/distr/amd64
+          DISTRDIR=/work/distr_amd64
           BUILDDIR=/work/build
           [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-          echo "list ${DISTRDIR}" && ls -lR ${DISTRDIR}
+          echo "list distr" && ls -lR distr*
           [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
           cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
 
@@ -53,30 +53,18 @@ jobs:
         image: fjzhangzzz/alpine-gcc:main
         options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/arm64
         run: |
-          DISTRDIR=/work/distr/arm64
+          DISTRDIR=/work/distr_arm64
           BUILDDIR=/work/build
           [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-          echo "list ${DISTRDIR}" && ls -lR ${DISTRDIR}
+          echo "list distr" && ls -lR distr*
           [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
           cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
-
-    - name: Upload artifact for linux/arm64
-      uses: actions/upload-artifact@v3
-      with:
-        name: arm64
-        path: distr/arm64/
 
     - name: Login to Docker Hub
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Download artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: distr
-        path: distr/
 
     - name: Display structure of downloaded files
       run: ls -R
