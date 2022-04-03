@@ -41,6 +41,8 @@ jobs:
         run: |
           DISTRDIR=/work/distr/amd64
           BUILDDIR=/work/build
+          [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
+          ls -l ${DISTRDIR}
           [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
           cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
 
@@ -53,6 +55,8 @@ jobs:
         run: |
           DISTRDIR=/work/distr/arm64
           BUILDDIR=/work/build
+          [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
+          ls -l ${DISTRDIR}
           [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
           cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
 
