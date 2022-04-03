@@ -64,9 +64,7 @@ jobs:
             
       - name: Build image for amd64
         run: |
-          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
-          IMAGENAME_AMD64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-amd64}
-          docker build -t ${IMAGENAME_AMD64} . && docker push ${IMAGENAME_AMD64}
+          docker build -t ${{ steps.meta.outputs.tags }}-amd64 . && docker push ${{ steps.meta.outputs.tags }}-amd64
 
       - name: Build source for linux/arm64
         uses: addnab/docker-run-action@v3
@@ -81,9 +79,7 @@ jobs:
         
       - name: Build image for arm64
         run: |
-          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
-          IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
-          docker build -t ${IMAGENAME_ARM64} . && docker push ${IMAGENAME_ARM64}
+          docker build -t ${{ steps.meta.outputs.tags }}-arm64 . && docker push ${{ steps.meta.outputs.tags }}-arm64
         
 #       - name: Push images
 #         run: |
