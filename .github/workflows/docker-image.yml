@@ -43,7 +43,7 @@ jobs:
       with:
         registry: docker.io
         image: fjzhangzzz/alpine-gcc:main
-        options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release arch=linux/amd64
+        options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/amd64
         run: |
           ls -l /work
           [[ -d /work/build ]] && rm -rf /work/build/* || mkdir -p /work/build
@@ -65,7 +65,7 @@ jobs:
       with:
         registry: docker.io
         image: fjzhangzzz/alpine-gcc:main
-        options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release arch=linux/arm64
+        options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/arm64
         run: |
           ls -l /work
           [[ -d /work/build ]] && rm -rf /work/build/* || mkdir -p /work/build
