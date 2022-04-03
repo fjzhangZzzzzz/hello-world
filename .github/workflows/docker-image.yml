@@ -45,11 +45,11 @@ jobs:
         image: fjzhangzzz/alpine-gcc:main
         options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/amd64
         run: |
-          ls -l /work
+          ls -l /work && uname -a
           [[ -d /work/build ]] && rm -rf /work/build/* || mkdir -p /work/build
           cd /work/build
           cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
-          make
+          make && file hello-world
 
     - name: Build image and push for linux/amd64
       uses: docker/build-push-action@v2
@@ -67,11 +67,11 @@ jobs:
         image: fjzhangzzz/alpine-gcc:main
         options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/arm64
         run: |
-          ls -l /work
+          ls -l /work && uname -a
           [[ -d /work/build ]] && rm -rf /work/build/* || mkdir -p /work/build
           cd /work/build
           cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
-          make
+          make && file hello-world
 
     - name: Build image and push for linux/arm64
       uses: docker/build-push-action@v2
