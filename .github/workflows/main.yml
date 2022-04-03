@@ -25,10 +25,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Enable docker experimental
-        run: |
-          echo "{ \"experimental\": true }" > /etc/docker/daemon.json
-          systemctl daemon-reload && systemctl restart docker
+#       - name: Enable docker experimental
+#         run: |
+#           echo "{ \"experimental\": true }" > /etc/docker/daemon.json
+#           systemctl daemon-reload && systemctl restart docker
           
       - name: Check out repo
         uses: actions/checkout@v3
@@ -85,12 +85,12 @@ jobs:
           IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
           docker build -t ${IMAGENAME_ARM64} . && docker push ${IMAGENAME_ARM64}
         
-      - name: Push images
-        run: |
-          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
-          IMAGENAME_AMD64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-amd64}
-          IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
-          docker manifest create ${FULL_IMAGENAME} ${IMAGENAME_AMD64} ${IMAGENAME_ARM64}
-          docker manifest annotate --arch amd64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_AMD64}
-          docker manifest annotate --arch arm64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_ARM64}
-          docker manifest push ${FULL_IMAGENAME}
+#       - name: Push images
+#         run: |
+#           FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
+#           IMAGENAME_AMD64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-amd64}
+#           IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
+#           docker manifest create ${FULL_IMAGENAME} ${IMAGENAME_AMD64} ${IMAGENAME_ARM64}
+#           docker manifest annotate --arch amd64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_AMD64}
+#           docker manifest annotate --arch arm64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_ARM64}
+#           docker manifest push ${FULL_IMAGENAME}
