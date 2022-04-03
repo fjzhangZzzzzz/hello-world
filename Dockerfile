@@ -1,3 +1,5 @@
 FROM alpine:3.15.3
-ADD build/hello-world /usr/bin
+ARG TARGETARCH
+ADD distr/* /tmp/distr
+RUN cp -rf /tmp/distr/$TARGETARCH/* /usr/bin && rm -rf /tmp/distr
 ENTRYPOINT [ "/usr/bin/hello-world" ]
