@@ -64,11 +64,24 @@ jobs:
       - name: Display
         run: echo "list ${{ github.workspace }}" && ls -lR ${{ github.workspace }}
         
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hello-world
+          path: ${{ github.workspace }}/dist/
+        
   release:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
     - uses: actions/checkout@master
+    
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: hello-world
+        path: ${{ github.workspace }}/dist/
+      
     - name: Display
       run: echo "list ${{ github.workspace }}" && ls -lR ${{ github.workspace }}
     - name: Create release
