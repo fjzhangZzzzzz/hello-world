@@ -25,6 +25,11 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Enable docker experimental
+        run: |
+          echo "{ \"experimental\": true }" > /etc/docker/daemon.json
+          systemctl daemon-reload && systemctl restart docker
+          
       - name: Check out repo
         uses: actions/checkout@v3
       
@@ -34,6 +39,18 @@ jobs:
       - name: Set up buildx
         uses: docker/setup-buildx-action@v1
         
+      - name: Extract metadata for Docker
+        uses: docker/metadata-action@v3
+        id: meta
+        with:
+          images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
+        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
       - name: Build source for linux/amd64
         uses: addnab/docker-run-action@v3
         with:
@@ -41,12 +58,15 @@ jobs:
           image: fjzhangzzz/alpine-gcc:main
           options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/amd64
           run: |
-            DISTRDIR=/work/dist
             BUILDDIR=/work/build
-            [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-            echo "list distr" && ls -lR ${DISTRDIR}
             [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
-            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make && cp hello-world ${DISTRDIR}/hello-world_linux_amd64
+            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make
+            
+      - name: Build image for amd64
+        run: |
+          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
+          IMAGENAME_AMD64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-amd64}
+          docker build -t ${IMAGENAME_AMD64} . && docker push ${IMAGENAME_AMD64}
 
       - name: Build source for linux/arm64
         uses: addnab/docker-run-action@v3
@@ -55,56 +75,22 @@ jobs:
           image: fjzhangzzz/alpine-gcc:main
           options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/arm64
           run: |
-            DISTRDIR=/work/dist
             BUILDDIR=/work/build
-            [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-            echo "list distr" && ls -lR ${DISTRDIR}
             [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
-            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make && cp hello-world ${DISTRDIR}/hello-world_linux_arm64
+            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make
         
-      - name: Display
-        run: echo "list ${{ github.workspace }}" && ls -lR ${{ github.workspace }}
+      - name: Build image for arm64
+        run: |
+          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
+          IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
+          docker build -t ${IMAGENAME_ARM64} . && docker push ${IMAGENAME_ARM64}
         
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: hello-world
-          path: ${{ github.workspace }}/dist/
-
-  publish:
-    runs-on: ubuntu-latest
-    needs: [build]
-
-    steps:
-    - name: Check out repo
-      uses: actions/checkout@v3
-      
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
-      
-    - name: Set up buildx
-      uses: docker/setup-buildx-action@v1
-      
-    - name: Extract metadata for Docker
-      uses: docker/metadata-action@v3
-      id: meta
-      with:
-        images: ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ env.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: show
-      run: |
-        echo "tags ${{ steps.meta.outputs.tags }}"
-#     - name: Build image and push
-#       uses: docker/build-push-action@v2
-#       with:
-#         context: .
-#         push: true
-#         platforms: linux/amd64,linux/arm64
-#         tags: ${{ steps.meta.outputs.tags }}
-#         labels: ${{ steps.meta.outputs.labels }}
+      - name: Push images
+        run: |
+          FULL_IMAGENAME=${{ steps.meta.outputs.tags }}
+          IMAGENAME_AMD64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-amd64}
+          IMAGENAME_ARM64=${FULL_IMAGENAME/$IMAGENAME/$IMAGENAME-arm64}
+          docker manifest create ${FULL_IMAGENAME} ${IMAGENAME_AMD64} ${IMAGENAME_ARM64}
+          docker manifest annotate --arch amd64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_AMD64}
+          docker manifest annotate --arch arm64 ${{ steps.meta.outputs.tags }} ${IMAGENAME_ARM64}
+          docker manifest push ${FULL_IMAGENAME}
