@@ -38,12 +38,12 @@ jobs:
           image: fjzhangzzz/alpine-gcc:main
           options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/amd64
           run: |
-            DISTRDIR=/work/distr_amd64
+            DISTRDIR=/work/dist
             BUILDDIR=/work/build
             [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-            echo "list distr" && ls -lR distr*
+            echo "list distr" && ls -lR ${DISTRDIR}
             [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
-            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
+            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make && cp hello-world ${DISTRDIR}/hello-world_linux_amd64
 
       - name: Build source for linux/arm64
         uses: addnab/docker-run-action@v3
@@ -52,18 +52,12 @@ jobs:
           image: fjzhangzzz/alpine-gcc:main
           options: -v ${{ github.workspace }}:/work -e BUILD_TYPE=Release --platform=linux/arm64
           run: |
-            DISTRDIR=/work/distr_arm64
+            DISTRDIR=/work/dist
             BUILDDIR=/work/build
             [[ -d ${DISTRDIR} ]] && ls -l ${DISTRDIR} || mkdir -p ${DISTRDIR}
-            echo "list distr" && ls -lR distr*
+            echo "list distr" && ls -lR ${DISTRDIR}
             [[ -d ${BUILDDIR} ]] && rm -rf ${BUILDDIR}/* || mkdir -p ${BUILDDIR}
-            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${DISTRDIR} .. && make
-
-      - name: Package
-        run: |
-          mkdir -p dist/bin
-          mv distr_amd64/hello-world dist/bin/hello-world_linux_amd64
-          mv distr_arm64/hello-world dist/bin/hello-world_linux_arm64
+            cd ${BUILDDIR} && cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. && make && cp hello-world ${DISTRDIR}/hello-world_linux_arm64
         
       - name: Display
         run: echo "github.workspace ${{ github.workspace }}" && ls -lR ${{ github.workspace }}
@@ -81,6 +75,6 @@ jobs:
       uses: Roang-zero1/github-upload-release-artifacts-action@master
       with:
         args:
-          dist/bin/
+          dist/
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
